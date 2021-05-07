@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     private AudioSource playerSource;
     [SerializeField] private AudioClip jumpSound;
     [SerializeField] private AudioClip takeABullet;
+    private bool obst = false;
     private Animator animator;
     private Vector3 direction;
     [SerializeField] private float speed;
@@ -144,11 +145,15 @@ public class PlayerController : MonoBehaviour
     {
         if (hit.gameObject.CompareTag("obstacle"))
         {
+
+            if (obst == true) return;
+
             print("hit");
             playerSource.Stop();
             StopCoroutine(SpeedIncrease());
             speed = 0;
             Health -= 1;
+            obst = true;
             if (Health <= 0)
             {
                 animator.SetBool("Run", false);
