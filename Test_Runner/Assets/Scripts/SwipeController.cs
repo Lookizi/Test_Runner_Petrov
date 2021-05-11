@@ -70,10 +70,10 @@ public class SwipeController : MonoBehaviour
             else
             {
 
-                if (y < 0)
-                    swipeDown = true;
-                else
+                if (y > 0)
                     swipeUp = true;
+                else
+                    swipeDown = true;
             }
 
             Reset();

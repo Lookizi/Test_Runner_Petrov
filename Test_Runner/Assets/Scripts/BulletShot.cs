@@ -2,25 +2,28 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class BulletShot : MonoBehaviour
 {
     private Animator animator;
     private AudioSource audioSource;
-    public AudioClip shot;
-    public GameObject projectile;
+    [SerializeField] private AudioClip shot;
+    [SerializeField] private AudioClip emptyAmmo;
+    [SerializeField] private GameObject projectile;
     private GameObject newProjectile;
-    public ParticleSystem gunExplode;
-    public float fireDelta = 0.5F;
-    public float power;
+    [SerializeField] private ParticleSystem gunExplode;
+    [SerializeField] private float fireDelta = 0.5F;
+    [SerializeField] private float power;
     private float nextFire = 0.5F;
-    private float myTime = 0.0F;
+    private float myTime = 0.5F;
     
     public int bullets;
     
     // Start is called before the first frame update
     void Start()
     {
+        // audioSource.volume = 0.3f;
         animator = GetComponentInParent<Animator>();
         audioSource = GetComponent<AudioSource>();
         Destroy(newProjectile,1f);
@@ -31,13 +34,23 @@ public class BulletShot : MonoBehaviour
     {
         myTime = myTime + Time.deltaTime;
         bullets = PlayerPrefs.GetInt("bullets");
-
+        
+        
+        //if ammo is empty
+        if (bullets == 0 && SwipeController.tap && myTime > nextFire)
+        {
+            audioSource.volume = 0.3f;        
+            audioSource.PlayOneShot(emptyAmmo);
+        }
+        //Player shooting
         if (SwipeController.tap && myTime > nextFire && bullets > 0 && PlayerPrefs.GetInt("health") > 0)
         {
             bullets -= 1;
             PlayerPrefs.SetInt("bullets", bullets);
             animator.SetTrigger("Attack");
             gunExplode.Play();
+            audioSource.volume = 0.5f;        
+            audioSource.pitch = Random.Range(0.9f, 1.1f);
             audioSource.PlayOneShot(shot);
             nextFire = myTime + fireDelta;
             var rotation = Quaternion.Euler (0,90,0);
@@ -46,7 +59,6 @@ public class BulletShot : MonoBehaviour
             
             nextFire = nextFire - myTime;
             myTime = 0.0F;
-            
         }
     }
 }

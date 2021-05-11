@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using Image = UnityEngine.UI.Image;
 
@@ -8,12 +9,10 @@ public class PlayerController : MonoBehaviour
 {
     private CharacterController charController;
     private AudioSource menuMusic;
-    private AudioSource playerSource;
-    [SerializeField] private AudioClip jumpSound;
-    [SerializeField] private AudioClip takeABullet;
-    private bool obst = false;
+
     private Animator animator;
     private Vector3 direction;
+    private bool isHit = false;
     [SerializeField] private float speed;
     [SerializeField] private float jumpForce;
     [SerializeField] private float gravity;
@@ -38,6 +37,8 @@ public class PlayerController : MonoBehaviour
     private int lineToMove = 1;
     [SerializeField] private float lineDist = 4;
     [SerializeField] private float maxSpeed = 90;
+    
+    [SerializeField] private AudioSource bonusSound;
     // private GameObject healthIcon;
     
     // Start is called before the first frame update
@@ -54,8 +55,6 @@ public class PlayerController : MonoBehaviour
         }
 
         menuMusic = menu.GetComponent<AudioSource>();
-        playerSource = GetComponent<AudioSource>();
-        playerSource.Play();
         StartCoroutine(SpeedIncrease());
     }
 
@@ -108,11 +107,7 @@ public class PlayerController : MonoBehaviour
         var moveDir = difference.normalized * (25 * Time.deltaTime);
 
         charController.Move(moveDir.sqrMagnitude < difference.sqrMagnitude ? moveDir : difference);
-
-        if (!animator.GetBool("Run"))
-        {
-            playerSource.Stop();
-        }
+        
         
     }
 
@@ -123,7 +118,6 @@ public class PlayerController : MonoBehaviour
             animator.SetTrigger("Jump");
             direction.y = jumpForce;
         }
-        playerSource.PlayOneShot(jumpSound);
     }
     
     // Update is called once per frame
@@ -145,19 +139,17 @@ public class PlayerController : MonoBehaviour
     {
         if (hit.gameObject.CompareTag("obstacle"))
         {
-
-            if (obst == true) return;
-
+            if (isHit) return;
+            
             print("hit");
-            playerSource.Stop();
             StopCoroutine(SpeedIncrease());
             speed = 0;
             Health -= 1;
-            obst = true;
+            isHit = true;
             if (Health <= 0)
             {
-                animator.SetBool("Run", false);
                 animator.SetTrigger("Death");
+                animator.SetBool("Run", false);
                 StartCoroutine(Restart());
                 
             }
@@ -172,7 +164,7 @@ public class PlayerController : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Bullet"))
         {
-            playerSource.PlayOneShot(takeABullet);
+            bonusSound.Play();
             bullets = 30;
             PlayerPrefs.SetInt("bullets", bullets);
             Destroy(other.gameObject);
